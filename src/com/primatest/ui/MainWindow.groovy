@@ -75,6 +75,7 @@ class MainWindow extends JFrame implements WindowListener {
     public JLabel infoLabel
     public JSplitButton performActionBtn
     public JComboBox idTypeList
+    public boolean stopping = false
     JCheckBoxMenuItem alwaysOnTop
     JMenuBar menubar
     JMenu fileMenu
@@ -251,73 +252,27 @@ class MainWindow extends JFrame implements WindowListener {
 
 
     def stopRecording(){
+        if(stopping == true) return
+        stopping = true
         setState(NORMAL)
         if(!isAlwaysOnTop()){
             setAlwaysOnTop(true)
             setAlwaysOnTop(false)
         }
         Robot robot = new Robot()
-        sleep(200)
+        sleep(100)
         def mouseLocation = MouseInfo.getPointerInfo().getLocation()
         robot.mouseMove(getX()+50, getY()+20)
         robot.mousePress(InputEvent.BUTTON1_DOWN_MASK)
         robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK)
         robot.mouseMove(mouseLocation.x.toInteger(), mouseLocation.y.toInteger())
-        glass.stopRecording()
+        //glass.stopRecording()
         fileMenu.setSelected(false)
         idField.requestFocus()
         infoLabel.setText("<html><font color=blue>Click on the looking glass and move mouse pointer to html element.</font></html>")
         performActionBtn.setEnabled(true)
+        stopping = false
     }
-
-    /*
-    def ctrlPressed = false
-    def altPressed = false
-    void nativeKeyPressed(NativeKeyEvent nativeKeyEvent) {
-        if (nativeKeyEvent.getKeyCode() == NativeKeyEvent.VK_CONTROL) {
-            ctrlPressed = true
-        }
-        else if (nativeKeyEvent.getKeyCode() == NativeKeyEvent.VK_ALT) {
-            altPressed = true
-        }
-        if(altPressed && ctrlPressed){
-            try{
-                if(lookingForObject){
-                    lookingForObject = false
-                    setState(NORMAL)
-                    if(!isAlwaysOnTop()){
-                        setAlwaysOnTop(true)
-                        setAlwaysOnTop(false)
-                    }
-                    Robot robot = new Robot()
-                    def mouseLocation = MouseInfo.getPointerInfo().getLocation()
-                    robot.mouseMove(getX()+10, getY()+10)
-                    robot.mousePress(InputEvent.BUTTON1_DOWN_MASK)
-                    robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK)
-                    robot.mouseMove(mouseLocation.x.toInteger(), mouseLocation.y.toInteger())
-                    glass.stopRecording()
-                    fileMenu.setSelected(false)
-                    idField.requestFocus()
-                    infoLabel.setText("<html><font color=blue>Click on the looking glass and move mouse pointer to html element.</font></html>")
-                    performActionBtn.setEnabled(true)
-                }
-            }
-            catch (Exception ex){
-                println ex.message
-            }
-        }
-    }
-    void nativeKeyReleased(NativeKeyEvent nativeKeyEvent) {
-        if (nativeKeyEvent.getKeyCode() == NativeKeyEvent.VK_CONTROL) {
-            ctrlPressed = false
-        }
-        else if (nativeKeyEvent.getKeyCode() == NativeKeyEvent.VK_ALT) {
-            altPressed = false
-        }
-    }
-
-    void nativeKeyTyped(NativeKeyEvent nativeKeyEvent) {}
-    */
 
     public void windowOpened(WindowEvent e) {
     }
@@ -354,8 +309,19 @@ class MainWindow extends JFrame implements WindowListener {
             private MainWindow main
             ObjectLocator(MainWindow mainWindow) {
                 main = mainWindow
-                main.parseHTML(main.glass.getHTML())
-                //main.infoLabel.setText("<html><font color=blue>Hit CTRL+ALT to stop element tracking.</font></html>")
+                def exceptionClosure = {Exception ex ->
+                    def error = "Error getting html page from browser: "+ex.message
+                    if(ex.class == org.openqa.selenium.NoSuchWindowException){
+                        error = "Error getting html page from browser. \r\nPlease make sure that you have \"Protected Mode Enabled\" check box checked for all security zones."
+                    }
+                    JOptionPane.showMessageDialog(mainWindow,
+                            error,
+                            "Error",
+                            JOptionPane.ERROR_MESSAGE);
+                }
+                def html = main.glass.getHTML(exceptionClosure)
+                if(html == "") return
+                main.parseHTML(html)
                 main.infoLabel.setText("<html><font color=blue>Click on any element to stop tracking.</font></html>")
                 main.performActionBtn.setEnabled(false)
             }
@@ -372,6 +338,7 @@ class MainWindow extends JFrame implements WindowListener {
             @Override
             protected void process(List<Object> chunks) {
                 for (Object id : chunks) {
+                    if(main.lookingForObject == false) return
                     if(id == "END OF RECORDING"){
                         main.lookingForObject = false;
                         stopRecording()
@@ -379,8 +346,6 @@ class MainWindow extends JFrame implements WindowListener {
                     }
                     main.ShownElement = id
                     main.setIDValue()
-                    //main.idField.setText(id.xpath)
-                    //main.idField.setText(id.css)
                     main.autoSelect = true
                     main.selectUINodeByXpath(id.xpath)
                     main.autoSelect = false
@@ -432,7 +397,17 @@ class MainWindow extends JFrame implements WindowListener {
         if(glass == null) return
         performActionBtn.setEnabled(false)
         infoLabel.setText("<html><font color=blue>Click on the looking glass and move mouse pointer to html element.</font></html>")
-        def response = glass.performElementAction(idField.getText(),{parseHTML(glass.getHTML())},idTypeList.getSelectedItem(),actionType)
+        def exceptionClosure = {ex ->
+            println ex
+            JOptionPane.showMessageDialog(mainWindow,
+                    "Error interacting with element: "+ex.message,
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE);
+        }
+        def response = glass.performElementAction(idField.getText(),{parseHTML(glass.getHTML())},idTypeList.getSelectedItem(),actionType,exceptionClosure)
+        if(response == null){
+            return
+        }
         if(response.text != ""){
             infoLabel.setText("<html>$response.text</html>")
         }
@@ -552,7 +527,7 @@ class MainWindow extends JFrame implements WindowListener {
     class browserTypeList extends JComboBox implements ActionListener  {
 
         public browserTypeList() {
-            String[] browserStrings = ["Internet Explorer", "Chrome", "Firefox"]
+            String[] browserStrings = ["Firefox", "Chrome", "Internet Explorer","Safari"]
             browserStrings.each {
                 this.addItem(it)
             }

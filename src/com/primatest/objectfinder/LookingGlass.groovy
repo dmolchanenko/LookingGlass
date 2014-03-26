@@ -4,14 +4,17 @@ import groovy.json.JsonSlurper
 import org.openqa.selenium.By
 import org.openqa.selenium.InvalidSelectorException
 import org.openqa.selenium.JavascriptExecutor
+import org.openqa.selenium.NoSuchWindowException
 import org.openqa.selenium.WebDriver
 import org.openqa.selenium.WebDriverException
 import org.openqa.selenium.WebElement
 import org.openqa.selenium.chrome.ChromeDriverService
 import org.openqa.selenium.firefox.FirefoxDriver
+import org.openqa.selenium.ie.InternetExplorerDriver
 import org.openqa.selenium.ie.InternetExplorerDriverService
 import org.openqa.selenium.remote.DesiredCapabilities
 import org.openqa.selenium.remote.RemoteWebDriver
+import org.openqa.selenium.safari.SafariDriver
 
 import java.util.concurrent.TimeUnit
 
@@ -286,7 +289,7 @@ else{
         js.executeScript(stopRecordingScript)
     }
 
-    public def performElementAction(String id,def reloadHTML,String idType,String actionType){
+    public def performElementAction(String id,def reloadHTML,String idType,String actionType,exceptionClosure){
         //RecDriver.findElement(By.xpath(id))
         def elements
         def response = [:]
@@ -321,6 +324,10 @@ else{
             response.text = "<font color=red>Invalid locator.</font>"
             return response
         }
+        catch (NoSuchWindowException ex){
+            exceptionClosure(ex)
+            return
+        }
         catch (WebDriverException ex){
             response.text = "<font color=red>Invalid locator.</font>"
             return response
@@ -330,12 +337,22 @@ else{
             reloadHTML()
         }
         if(elements.size() > 0){
-            if(actionType == "highlight"){
-                response.xpath = js.executeAsyncScript(highLightObjectScript, elements[0])
+            try{
+                if(actionType == "highlight"){
+                    response.xpath = js.executeAsyncScript(highLightObjectScript, elements[0])
+                }
+                else if(actionType == "click"){
+                    response.xpath = js.executeAsyncScript(highLightObjectScript, elements[0])
+                    elements[0].click()
+                }
+                else if(actionType == "type"){
+                    response.xpath = js.executeAsyncScript(highLightObjectScript, elements[0])
+                    elements[0].sendKeys("test text")
+                }
             }
-            else if(actionType == "click"){
-                response.xpath = js.executeAsyncScript(highLightObjectScript, elements[0])
-                elements[0].click()
+            catch (Exception ex){
+                exceptionClosure(ex)
+                return
             }
 
             if(elements.size() > 1){
@@ -367,11 +384,18 @@ else{
         }
     }
 
-    public String getHTML(){
-        RecDriver.findElement(By.xpath("//*[1]"))
-        def html = js.executeAsyncScript(getRawHtmlScript)
-        //println "getting HTML"
-        return html
+    public String getHTML(exceptionClosure){
+
+        try{
+            RecDriver.findElement(By.xpath("//*[1]"))
+            def html = js.executeAsyncScript(getRawHtmlScript)
+            return html
+        }
+        catch (Exception ex){
+            exceptionClosure(ex)
+            return ""
+        }
+
     }
 
     public def FindObject(def reloadHTML){
@@ -427,8 +451,16 @@ else{
 
     void run() {
         try{
+            System.setProperty("webdriver.chrome.driver", System.getProperty("user.dir"));
             if(BrowserType == "Chrome"){
-                def service = new ChromeDriverService.Builder().usingPort(9515).usingDriverExecutable(new File("chromedriver.exe")).build()
+                def service
+                if(System.getProperty("os.name").toLowerCase().indexOf("mac") >= 0){
+                    service = new ChromeDriverService.Builder().usingPort(9515).usingDriverExecutable(new File("chromedriver")).build()
+                }
+                else{
+                    service = new ChromeDriverService.Builder().usingPort(9515).usingDriverExecutable(new File("chromedriver.exe")).build()
+                }
+
                 service.start()
                 RecDriver = new RemoteWebDriver(service.getUrl(),DesiredCapabilities.chrome())
 
@@ -436,13 +468,18 @@ else{
             else if(BrowserType == "Firefox"){
                 RecDriver = new FirefoxDriver()
             }
+            else if(BrowserType == "Safari"){
+                RecDriver = new SafariDriver()
+            }
             else{
-                def serviceIE = new InternetExplorerDriverService.Builder().usingDriverExecutable(new File("IEDriverServer.exe")).build()
+                def serviceIE = new InternetExplorerDriverService.Builder().usingPort(9517).usingDriverExecutable(new File("IEDriverServer.exe")).build()
                 serviceIE.start()
                 DesiredCapabilities d = DesiredCapabilities.internetExplorer()
                 d.setCapability("nativeEvents", false)
-                d.setCapability("forceCreateProcessApi", true)
-                d.setCapability("browserCommandLineSwitches", "-private")
+                d.setCapability(InternetExplorerDriver.
+                        INTRODUCE_FLAKINESS_BY_IGNORING_SECURITY_DOMAINS,true);
+                //d.setCapability("forceCreateProcessApi", true)
+                //d.setCapability("browserCommandLineSwitches", "-private")
                 RecDriver = new RemoteWebDriver(serviceIE.getUrl(),d)
             }
 
