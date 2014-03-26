@@ -3,7 +3,7 @@ LookingGlass
 
 Browser independent HTML Element browser.
 
-Quick Start:
+**Quick Start**:
 
 1. Install Java 1.7
 2. Download zip file from:  https://bitbucket.org/primatestinc/looking-glass/downloads/LookingGlass.zip
@@ -14,7 +14,7 @@ Quick Start:
 7. Select "Click" operation from drop down next to "Validate" button
 8. Click on the "Click" button to see if Selenium can click on the selected HTML element
 
-Known Limitations (I'm currently working on both):
+**Known Limitations** (I'm currently working on both):
 
 1. Currently does not work on multiple windows, just the first one that is opened.
 2. Currently does not track elements inside iframes.
