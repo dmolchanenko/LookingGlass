@@ -16,6 +16,6 @@ Browser independent HTML Element browser.
 
 **Known Limitations** (I'm currently working on both):
 
-1. Currently does not work on multiple windows, just the first one that is opened.
+1. Currently does not work on multiple tabs/windows, just the first one that is opened.
 2. Currently does not track elements inside iframes.
 
