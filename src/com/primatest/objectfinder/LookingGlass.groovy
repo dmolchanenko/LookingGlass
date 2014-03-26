@@ -457,6 +457,9 @@ else{
                 if(System.getProperty("os.name").toLowerCase().indexOf("mac") >= 0){
                     service = new ChromeDriverService.Builder().usingPort(9515).usingDriverExecutable(new File("chromedriver")).build()
                 }
+                else if (System.getProperty("os.name").toLowerCase().indexOf("linux") >= 0){
+                    service = new ChromeDriverService.Builder().usingPort(9515).usingDriverExecutable(new File("chromedriver_linux")).build()
+                }
                 else{
                     service = new ChromeDriverService.Builder().usingPort(9515).usingDriverExecutable(new File("chromedriver.exe")).build()
                 }
