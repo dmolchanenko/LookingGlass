@@ -11,4 +11,6 @@ Quick Start:
 4. Select browser type you want to work with and click on Open button
 5. Navigate to needed URL
 6. Click on the looking glass icon and click on element you want to inspect
+7. Select "Click" operation from drop down next to "Validate" button
+8. Click on the "Click" button to see if Selenium can click on the selected HTML element
 
