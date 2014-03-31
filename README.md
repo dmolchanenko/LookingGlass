@@ -5,6 +5,12 @@ Browser independent HTML Element browser.
 **Video Overview**
 https://www.youtube.com/watch?v=HOK6KOJFqoU
 
+**Compatible**:
+
+OS: Windows, Linux, Mac OS X
+
+Brwosers: Chrome, Internet Explorer, Safari, Firefox
+
 **Quick Start**:
 
 1. Install Java 1.7
