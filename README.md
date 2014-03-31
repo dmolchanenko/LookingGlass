@@ -2,6 +2,8 @@ LookingGlass
 ============
 
 Browser independent HTML Element browser.
+
+
 **Video Overview**
 https://www.youtube.com/watch?v=HOK6KOJFqoU
 
@@ -9,7 +11,7 @@ https://www.youtube.com/watch?v=HOK6KOJFqoU
 
 OS: Windows, Linux, Mac OS X
 
-Brwosers: Chrome, Internet Explorer, Safari, Firefox
+Browsers: Chrome, Internet Explorer, Safari, Firefox
 
 **Quick Start**:
 
