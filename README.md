@@ -5,6 +5,7 @@ Browser independent HTML Element browser.
 
 **Compatible**:
 OS: Windows, Linux, Mac OS X
+
 Brwosers: Chrome, Internet Explorer, Safari, Firefox
 
 **Quick Start**:
