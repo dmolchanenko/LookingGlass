@@ -1,10 +1,12 @@
 package com.primatest.ui
 
 import com.primatest.objectfinder.LookingGlass
+import groovy.json.JsonSlurper
 import net.miginfocom.swing.MigLayout
 import org.cyberneko.html.parsers.DOMParser
 import org.gpl.JSplitButton.JSplitButton
 import org.gpl.JSplitButton.action.SplitButtonActionListener
+import org.testng.annotations.Test
 import org.xml.sax.InputSource
 
 
@@ -61,7 +63,7 @@ class MainWindow extends JFrame implements WindowListener {
     public LookingGlass glass
     DOMParser  parser = new DOMParser ()
     public def xpath =  XPathFactory.newInstance().newXPath()
-    public String SelectedBrowser = "Internet Explorer"
+    public String SelectedBrowser = "Firefox"
     public JTextField idField
     public JButton pointerBtn
     public JTree DOMtree
@@ -75,7 +77,6 @@ class MainWindow extends JFrame implements WindowListener {
     public JLabel infoLabel
     public JSplitButton performActionBtn
     public JComboBox idTypeList
-    public boolean stopping = false
     JCheckBoxMenuItem alwaysOnTop
     JMenuBar menubar
     JMenu fileMenu
@@ -151,6 +152,9 @@ class MainWindow extends JFrame implements WindowListener {
                 }
                 else if(performActionBtn.getText().startsWith("Click")){
                     performElementAction("click")
+                }
+                else if(performActionBtn.getText().startsWith("Type")){
+                    performElementAction("type")
                 }
             }
 
@@ -252,8 +256,6 @@ class MainWindow extends JFrame implements WindowListener {
 
 
     def stopRecording(){
-        if(stopping == true) return
-        stopping = true
         setState(NORMAL)
         if(!isAlwaysOnTop()){
             setAlwaysOnTop(true)
@@ -271,7 +273,6 @@ class MainWindow extends JFrame implements WindowListener {
         idField.requestFocus()
         infoLabel.setText("<html><font color=blue>Click on the looking glass and move mouse pointer to html element.</font></html>")
         performActionBtn.setEnabled(true)
-        stopping = false
     }
 
     public void windowOpened(WindowEvent e) {
@@ -330,6 +331,11 @@ class MainWindow extends JFrame implements WindowListener {
             public String doInBackground() {
                 while(main.lookingForObject){
                     def chunk = main.glass.FindObject({main.parseHTML(main.glass.getHTML())})
+                    if(chunk == "END OF RECORDING"){
+                        main.lookingForObject = false;
+                        stopRecording()
+                        return ""
+                    }
                     publish(chunk)
                 }
                 return ""
@@ -339,11 +345,6 @@ class MainWindow extends JFrame implements WindowListener {
             protected void process(List<Object> chunks) {
                 for (Object id : chunks) {
                     if(main.lookingForObject == false) return
-                    if(id == "END OF RECORDING"){
-                        main.lookingForObject = false;
-                        stopRecording()
-                        return
-                    }
                     main.ShownElement = id
                     main.setIDValue()
                     main.autoSelect = true
@@ -547,8 +548,14 @@ class MainWindow extends JFrame implements WindowListener {
         catch(Exception ex){
             println "Problem with id: ${id}"
         }
+        def exceptionClosure = {Exception ex ->
+            JOptionPane.showMessageDialog(mainWindow,
+                    "Error getting html page: "+ex.message,
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE);
+        }
         if(node == null){
-            parseHTML(glass.getHTML())
+            parseHTML(glass.getHTML(exceptionClosure))
             return
         }
         TreeNode[] nodes = ((DefaultTreeModel) DOMtree.getModel()).getPathToRoot(uiToXMLHash.get(node));
@@ -597,6 +604,10 @@ class MainWindow extends JFrame implements WindowListener {
         uiToXMLHash = [:]
         alreadyIncludedHash = [:]
         parser.reset()
+        int index = html.indexOf("<head>")
+        if(index != 0){
+            html = html.substring(index,html.size())
+        }
         parser.parse(new InputSource(new StringReader(html)))
 
         /*

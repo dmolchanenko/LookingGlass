@@ -15,6 +15,7 @@ import org.openqa.selenium.ie.InternetExplorerDriverService
 import org.openqa.selenium.remote.DesiredCapabilities
 import org.openqa.selenium.remote.RemoteWebDriver
 import org.openqa.selenium.safari.SafariDriver
+import org.testng.annotations.Test
 
 import java.util.concurrent.TimeUnit
 
@@ -43,6 +44,7 @@ class LookingGlass implements Runnable{
 if(document.lookingGlassGetXpath) return;
 
 document.lookingGlassGetCSSSelector = function(element){
+    if(!element) return "";
     if (element.id!=='')
         return "#"+element.id;
     if (element===document.body)
@@ -114,10 +116,18 @@ document.lookingGlassGetLinkText = function(element){
 }
 
 document.lookingGlassGenerateID = function(element){
-    //return "{xpath:"+document.lookingGlassGetXpath(element)+",css:"+document.lookingGlassGetCSSSelector(element)+",id:"+element.id+",name:"+element.getAttribute("name")+",className:"+element.getAttribute("class")+",tagName:"+element.tagName+",linkText:"+document.lookingGlassGetLinkText(element)+"}";
-    return JSON.stringify({xpath:document.lookingGlassGetXpath(element),css:document.lookingGlassGetCSSSelector(element),id:element.id,name:element.getAttribute("name"),className:element.getAttribute("class"),tagName:element.tagName,linkText:document.lookingGlassGetLinkText(element)});
+    //return '{"xpath":"+document.lookingGlassGetXpath(element)+",css:"+document.lookingGlassGetCSSSelector(element)+",id:"+element.id+",name:"+element.getAttribute("name")+",className:"+element.getAttribute("class")+",tagName:"+element.tagName+",linkText:"+document.lookingGlassGetLinkText(element)+"}';
+    var jsonParser
+    if(Object.toJSON){
+        jsonParser = Object.toJSON;
+    }
+    else{
+        jsonParser = JSON.stringify;
+    }
+    return jsonParser({xpath:document.lookingGlassGetXpath(element),css:document.lookingGlassGetCSSSelector(element),id:element.id,name:element.getAttribute("name"),className:element.getAttribute("class"),tagName:element.tagName,linkText:document.lookingGlassGetLinkText(element)});
 }
 document.lookingGlassGetXpath = function (element) {
+    if(!element) return "";
     //if(element.tagName == "A"){
     //    return "//a[text()='"+element.textContent+"']";
     //}
@@ -139,71 +149,63 @@ document.lookingGlassGetXpath = function (element) {
 }
 
 document.lookingGlassMouseOver = function(e){
+
     if(e.target == document.documentElement) return
     e.target.addEventListener('click', document.lookingGlassPreventClick,false);
     e.target.addEventListener('mousedown', document.lookingGlassPreventClick,false);
     e.target.addEventListener('mouseup', document.lookingGlassPreventClick,false);
     e.target.addEventListener('submit', document.lookingGlassPreventClick,false);
     document.lookingGlassLastElem = e.target;
-    if(e.target.tagName == "INPUT"){
-        document.lookingGlassLastElemColor = e.target.style.outline;
-        e.target.style.outline = "thin solid #0000FF";
-    }
-    else{
-        document.lookingGlassLastElemColor = e.target.style.backgroundColor;
-        e.target.style.backgroundColor = "#FDFF47";
-    }
+    document.lookingGlassLastElemColor = e.target.style.outline;
+    e.target.style.outline = "thin solid green";
     document.lookingGlassRecording =  document.lookingGlassGenerateID(e.target);
 };
 
 document.onmouseout = function(ev){
     if(document.lookingGlassLastElem){
-        if(document.lookingGlassLastElem.tagName == "INPUT"){
-            ev.target.style.outline = document.lookingGlassLastElemColor;
-        }
-        else{
-            ev.target.style.backgroundColor = document.lookingGlassLastElemColor;
-        }
-        ev.target.removeEventListener('click', document.lookingGlassPreventClick,false);
-        ev.target.removeEventListener('mousedown', document.lookingGlassPreventClick,false);
-        ev.target.removeEventListener('mouseup', document.lookingGlassPreventClick,false);
-        ev.target.removeEventListener('submit', document.lookingGlassPreventClick,false);
+        ev.target.style.outline = document.lookingGlassLastElemColor;
     }
+    ev.target.removeEventListener('click', document.lookingGlassPreventClick,false);
+    ev.target.removeEventListener('mousedown', document.lookingGlassPreventClick,false);
+    ev.target.removeEventListener('mouseup', document.lookingGlassPreventClick,false);
+    ev.target.removeEventListener('submit', document.lookingGlassPreventClick,false);
 };
 
 document.lookingGlassLastCursor = document.body.style.cursor;
 
 document.lookingGlassPreventClick = function(e){
-    document.removeEventListener('mouseover', document.lookingGlassMouseOver, false);
-    if(document.lookingGlassLastElem.tagName == "INPUT"){
-        e.target.style.outline = document.lookingGlassLastElemColor;
-    }
-    else{
-        e.target.style.backgroundColor = document.lookingGlassLastElemColor;
-    }
     document.lookingGlassRecording = "END OF RECORDING";
+    document.removeEventListener('mouseover', document.lookingGlassMouseOver);
+    document.removeEventListener('click', document.lookingGlassPreventClick,false);
+    document.removeEventListener('mousedown', document.lookingGlassPreventClick,false);
+    document.removeEventListener('mouseup', document.lookingGlassPreventClick,false);
+    document.removeEventListener('submit', document.lookingGlassPreventClick,false);
+
+    e.target.removeEventListener('mouseover', document.lookingGlassMouseOver);
+    e.target.style.outline = document.lookingGlassLastElemColor;
     document.body.style.cursor =  document.lookingGlassLastCursor;
-    e.stopPropagation();
-    e.preventDefault();
-    e.stopImmediatePropagation();
+    if(e.stopPropagation) e.stopPropagation();
+    if(e.preventDefault) e.preventDefault();
+    if(e.stopImmediatePropagation) e.stopImmediatePropagation();
     return false;
 };
+
 '''
     def getObjectIDScript =
 '''
     var callback = arguments[arguments.length - 1];
     callback(document.lookingGlassGenerateID(arguments[0]));
 '''
+    def getObjectXpathScript =
+'''
+    var callback = arguments[arguments.length - 1];
+    callback(document.lookingGlassGetXpath(arguments[0]));
+'''
 
     def highLightObjectScript =
 '''
 var stopHighLight = function(){
-    if(document.lookingGlassLastElem.tagName == "INPUT"){
-        document.lookingGlassLastElem.style.outline = document.lookingGlassLastElemColor;
-    }
-    else{
-        document.lookingGlassLastElem.style.backgroundColor = document.lookingGlassLastElemColor;
-    }
+    document.lookingGlassLastElem.style.outline = document.lookingGlassLastElemColor;
 }
 if(document.lookingGlassLastElem){
     stopHighLight();
@@ -211,24 +213,19 @@ if(document.lookingGlassLastElem){
 document.lookingGlassLastElem = arguments[0]
 document.lookingGlassLastElemColor = arguments[0].style.backgroundColor
 setTimeout(function(){stopHighLight()}, 8000);
-if(arguments[0].tagName == "INPUT"){
-    document.lookingGlassLastElemColor = arguments[0].style.outline;
-    arguments[0].style.outline="thin solid #0000FF";
-}
-else{
-    document.lookingGlassLastElemColor = arguments[0].style.backgroundColor;
-    arguments[0].style.backgroundColor = "#FDFF47";
-}
+document.lookingGlassLastElemColor = arguments[0].style.outline;
+arguments[0].style.outline="thin solid green";
 arguments[1](document.lookingGlassGetXpath(arguments[0]));
 '''
 
     def recordObjectScript =
 '''
 document.body.style.cursor = "pointer";
-//document.addEventListener('click', document.lookingGlassPreventClick,false);
-//document.addEventListener('mousedown', document.lookingGlassPreventClick,false);
-//document.addEventListener('mouseup', document.lookingGlassPreventClick,false);
-//document.addEventListener('submit', document.lookingGlassPreventClick,false);
+document.lookingGlassRecording = null;
+document.addEventListener('click', document.lookingGlassPreventClick,false);
+document.addEventListener('mousedown', document.lookingGlassPreventClick,false);
+document.addEventListener('mouseup', document.lookingGlassPreventClick,false);
+document.addEventListener('submit', document.lookingGlassPreventClick,false);
 document.addEventListener('mouseover', document.lookingGlassMouseOver, false);
 //window.onclick =
 '''
@@ -258,8 +255,8 @@ callback(document.activeElement);
    var waitForActions = function(){
        if(document.lookingGlassRecording){
         var response = document.lookingGlassRecording
-        callback(response);
         document.lookingGlassRecording = null;
+        callback(response);
        }
        else{
         setTimeout(waitForActions, 50);
@@ -342,11 +339,11 @@ else{
                     response.xpath = js.executeAsyncScript(highLightObjectScript, elements[0])
                 }
                 else if(actionType == "click"){
-                    response.xpath = js.executeAsyncScript(highLightObjectScript, elements[0])
+                    response.xpath = js.executeAsyncScript(getObjectXpathScript, elements[0])
                     elements[0].click()
                 }
                 else if(actionType == "type"){
-                    response.xpath = js.executeAsyncScript(highLightObjectScript, elements[0])
+                    response.xpath = js.executeAsyncScript(getObjectXpathScript, elements[0])
                     elements[0].sendKeys("test text")
                 }
             }
@@ -356,7 +353,7 @@ else{
             }
 
             if(elements.size() > 1){
-                response.text = "<font color=green>More than one element found, working with first one.</font>"
+                response.text = "<font color=green>More then one element found, working with first one.</font>"
             }
             else{
                 response.text = "<font color=green>Found One Element.</font>"
@@ -424,6 +421,7 @@ else{
                 js.executeScript(initScript)
                 js.executeScript(recordObjectScript)
                 response = js.executeAsyncScript(collectScript)
+                if(response == "END OF RECORDING") return response
                 parsedResponse = groovy.json.JsonOutput.toJson(response)
             }
             return parsedResponse
@@ -442,7 +440,7 @@ else{
                 return recording()
             }
             else{
-                //println ex.message
+                println ex.message
             }
         }
     //}
@@ -454,7 +452,7 @@ else{
             System.setProperty("webdriver.chrome.driver", System.getProperty("user.dir"));
             if(BrowserType == "Chrome"){
                 def service
-                if(System.getProperty("os.name").toLowerCase().indexOf("mac") >= 0){
+                    if(System.getProperty("os.name").toLowerCase().indexOf("mac") >= 0){
                     service = new ChromeDriverService.Builder().usingPort(9515).usingDriverExecutable(new File("chromedriver")).build()
                 }
                 else if (System.getProperty("os.name").toLowerCase().indexOf("linux") >= 0){

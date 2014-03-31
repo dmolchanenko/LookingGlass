@@ -2,6 +2,8 @@ LookingGlass
 ============
 
 Browser independent HTML Element browser.
+**Video Overview**
+https://www.youtube.com/watch?v=HOK6KOJFqoU
 
 **Quick Start**:
 
