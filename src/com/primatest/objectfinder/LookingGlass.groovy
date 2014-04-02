@@ -157,13 +157,16 @@ document.lookingGlassMouseOver = function(e){
     e.target.addEventListener('submit', document.lookingGlassPreventClick,false);
     document.lookingGlassLastElem = e.target;
     document.lookingGlassLastElemColor = e.target.style.outline;
-    e.target.style.outline = "thin solid green";
+    document.lookingGlassLastElemHighlight = e.target.style.backgroundColor;
+    e.target.style.outline = "medium solid green";
+    e.target.style.backgroundColor = "#FDFF47";
     document.lookingGlassRecording =  document.lookingGlassGenerateID(e.target);
 };
 
 document.onmouseout = function(ev){
     if(document.lookingGlassLastElem){
         ev.target.style.outline = document.lookingGlassLastElemColor;
+        ev.target.style.backgroundColor = document.lookingGlassLastElemHighlight;
     }
     ev.target.removeEventListener('click', document.lookingGlassPreventClick,false);
     ev.target.removeEventListener('mousedown', document.lookingGlassPreventClick,false);
@@ -183,6 +186,7 @@ document.lookingGlassPreventClick = function(e){
 
     e.target.removeEventListener('mouseover', document.lookingGlassMouseOver);
     e.target.style.outline = document.lookingGlassLastElemColor;
+    e.target.style.backgroundColor = document.lookingGlassLastElemHighlight;
     document.body.style.cursor =  document.lookingGlassLastCursor;
     if(e.stopPropagation) e.stopPropagation();
     if(e.preventDefault) e.preventDefault();
@@ -206,15 +210,17 @@ document.lookingGlassPreventClick = function(e){
 '''
 var stopHighLight = function(){
     document.lookingGlassLastElem.style.outline = document.lookingGlassLastElemColor;
+    document.lookingGlassLastElem.style.backgroundColor = document.lookingGlassLastElemHighlight;
 }
 if(document.lookingGlassLastElem){
     stopHighLight();
 }
 document.lookingGlassLastElem = arguments[0]
-document.lookingGlassLastElemColor = arguments[0].style.backgroundColor
+document.lookingGlassLastElemColor = arguments[0].style.outline
+document.lookingGlassLastElemHighlight = arguments[0].style.backgroundColor
 setTimeout(function(){stopHighLight()}, 8000);
-document.lookingGlassLastElemColor = arguments[0].style.outline;
 arguments[0].style.outline="thin solid green";
+arguments[0].style.backgroundColor= "#FDFF47";
 arguments[1](document.lookingGlassGetXpath(arguments[0]));
 '''
 
@@ -233,7 +239,8 @@ document.addEventListener('mouseover', document.lookingGlassMouseOver, false);
 '''
 //document.body.style.cursor = document.lookingGlassLastCursor
 if(document.lookingGlassLastElem){
-    document.lookingGlassLastElem.style.backgroundColor = document.lookingGlassLastElemColor
+    document.lookingGlassLastElem.style.outline = document.lookingGlassLastElemColor
+    document.lookingGlassLastElem.style.backgroundColor = document.lookingGlassLastElemHighlight
 }
 //document.removeEventListener('click', document.lookingGlassPreventClick, false);
 document.removeEventListener('mouseover', document.lookingGlassMouseOver, false);
