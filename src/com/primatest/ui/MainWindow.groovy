@@ -605,7 +605,7 @@ class MainWindow extends JFrame implements WindowListener {
         alreadyIncludedHash = [:]
         parser.reset()
         int index = html.indexOf("<head>")
-        if(index != 0){
+        if(index != 0 && index != -1){
             html = html.substring(index,html.size())
         }
         parser.parse(new InputSource(new StringReader(html)))
