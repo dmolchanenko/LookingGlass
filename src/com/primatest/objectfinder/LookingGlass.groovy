@@ -78,6 +78,9 @@ document.lookingGlassGetCSSSelector = function(element){
                }
             }
         }
+        else if (sibling===element){
+            return document.lookingGlassGetCSSSelector(element.parentNode)+' > '+element.tagName+':nth-child('+(ix+1)+')';
+        }
         if (sibling.nodeType===1 && sibling.tagName===element.tagName)
             ix++;
     }
