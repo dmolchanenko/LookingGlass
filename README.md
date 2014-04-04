@@ -13,8 +13,8 @@ OS: Windows, Linux, Mac OS X
 
 Browsers: Chrome, Internet Explorer, Safari, Firefox
 
-Please note that this is a Selenium based solution.  
-This means as your browser versions change you need to get latest binaries of Looking Glass.
+*Please note that this is a Selenium based solution.*  
+*This means as your browser versions change you need to get latest binaries of Looking Glass.*
 
 **Quick Start**:
 
