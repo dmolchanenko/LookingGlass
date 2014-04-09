@@ -7,6 +7,9 @@ A cross-browser open-source tool to record, develop, debug Selenium scripts as w
 **Video Overview**:
 https://www.youtube.com/watch?v=_P_sD8pPYfs
 
+**Forum**:
+https://groups.google.com/forum/#!forum/primatest-automation
+
 **Compatible**:
 
 OS: Windows, Linux, Mac OS X
