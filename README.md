@@ -64,6 +64,14 @@ Q: How is future support of the browsers going to work? How can I add later/earl
 
 A: You can replace any Selenium jar that Looking Glass comes with to whatever latest one or the one you want under: \<Looking Glass Installed Location>\lib
 
+Q: Can I use my own jar files and have that code be available in code portion of the Looking Glass?
+
+A: Yes you can.  
+ 1. Place your jars into \<Looking Glass Installed Location>\lib directory.  
+ 2. Restart Looking Glass and navigate to "Code" tab.
+ 3. Click on "imports" icon.
+ 4. Add any imports you like either from your jar or from selenium.  Now your your jar code is available to be used in Code tab.
+
 **Known Limitations** (I'm currently working on both):
 
 1. Currently does not work on multiple tabs/windows, just the first one that is opened.
