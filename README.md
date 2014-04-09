@@ -66,7 +66,7 @@ A: You can replace any Selenium jar that Looking Glass comes with to whatever la
 
 Q: Can I use my own jar files and have that code be available in code portion of the Looking Glass?
 
-A: Yes you can.  
+A: Yes you can.
  1. Place your jars into \<Looking Glass Installed Location>\lib directory.  
  2. Restart Looking Glass and navigate to "Code" tab.
  3. Click on "imports" icon.
