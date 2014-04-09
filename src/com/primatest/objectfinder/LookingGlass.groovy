@@ -7,7 +7,6 @@ import org.openqa.selenium.JavascriptExecutor
 import org.openqa.selenium.NoSuchWindowException
 import org.openqa.selenium.WebDriver
 import org.openqa.selenium.WebDriverException
-import org.openqa.selenium.WebElement
 import org.openqa.selenium.chrome.ChromeDriverService
 import org.openqa.selenium.firefox.FirefoxDriver
 import org.openqa.selenium.ie.InternetExplorerDriver
@@ -15,7 +14,6 @@ import org.openqa.selenium.ie.InternetExplorerDriverService
 import org.openqa.selenium.remote.DesiredCapabilities
 import org.openqa.selenium.remote.RemoteWebDriver
 import org.openqa.selenium.safari.SafariDriver
-import org.testng.annotations.Test
 
 import java.util.concurrent.TimeUnit
 
@@ -245,8 +243,12 @@ if(document.lookingGlassLastElem){
     document.lookingGlassLastElem.style.outline = document.lookingGlassLastElemColor
     document.lookingGlassLastElem.style.backgroundColor = document.lookingGlassLastElemHighlight
 }
-//document.removeEventListener('click', document.lookingGlassPreventClick, false);
+document.removeEventListener('click', document.lookingGlassPreventClick,false);
+document.removeEventListener('mousedown', document.lookingGlassPreventClick,false);
+document.removeEventListener('mouseup', document.lookingGlassPreventClick,false);
+document.removeEventListener('submit', document.lookingGlassPreventClick,false);
 document.removeEventListener('mouseover', document.lookingGlassMouseOver, false);
+delete document.lookingGlassGetXpath
 '''
     def static isFocusedScript =
 '''
@@ -441,7 +443,7 @@ else{
             return recordingResult
         }
         catch (Exception ex){
-            if(ex.message.contains("unload")){
+            if(ex.message.contains("unload") || ex.message.contains("reload")){
                 RecDriver.findElement(By.xpath("//*[1]"))
                 println "reloading"
                 reloadHTML()
@@ -459,17 +461,20 @@ else{
 
     void run() {
         try{
-            System.setProperty("webdriver.chrome.driver", System.getProperty("user.dir"));
+            def libDir = ""
+            if(new File("lib/chromedriver.exe").exists()){
+                libDir = new File("lib").absolutePath+"/"
+            }
             if(BrowserType == "Chrome"){
                 def service
-                    if(System.getProperty("os.name").toLowerCase().indexOf("mac") >= 0){
-                    service = new ChromeDriverService.Builder().usingPort(9515).usingDriverExecutable(new File("chromedriver")).build()
+                if(System.getProperty("os.name").toLowerCase().indexOf("mac") >= 0){
+                    service = new ChromeDriverService.Builder().usingPort(9515).usingDriverExecutable(new File(libDir+"chromedriver")).build()
                 }
                 else if (System.getProperty("os.name").toLowerCase().indexOf("linux") >= 0){
-                    service = new ChromeDriverService.Builder().usingPort(9515).usingDriverExecutable(new File("chromedriver_linux")).build()
+                    service = new ChromeDriverService.Builder().usingPort(9515).usingDriverExecutable(new File(libDir+"chromedriver_linux")).build()
                 }
                 else{
-                    service = new ChromeDriverService.Builder().usingPort(9515).usingDriverExecutable(new File("chromedriver.exe")).build()
+                    service = new ChromeDriverService.Builder().usingPort(9515).usingDriverExecutable(new File(libDir+"chromedriver.exe")).build()
                 }
 
                 service.start()
@@ -483,18 +488,18 @@ else{
                 RecDriver = new SafariDriver()
             }
             else{
-                def serviceIE = new InternetExplorerDriverService.Builder().usingPort(9517).usingDriverExecutable(new File("IEDriverServer.exe")).build()
+                def serviceIE = new InternetExplorerDriverService.Builder().usingPort(9517).usingDriverExecutable(new File("lib/IEDriverServer.exe")).build()
                 serviceIE.start()
                 DesiredCapabilities d = DesiredCapabilities.internetExplorer()
                 d.setCapability("nativeEvents", false)
-                d.setCapability(InternetExplorerDriver.
-                        INTRODUCE_FLAKINESS_BY_IGNORING_SECURITY_DOMAINS,true);
+                d.setCapability(InternetExplorerDriver.INTRODUCE_FLAKINESS_BY_IGNORING_SECURITY_DOMAINS,true);
                 //d.setCapability("forceCreateProcessApi", true)
                 //d.setCapability("browserCommandLineSwitches", "-private")
                 RecDriver = new RemoteWebDriver(serviceIE.getUrl(),d)
             }
 
             RecDriver.manage().timeouts().setScriptTimeout(999999, TimeUnit.SECONDS);
+            RecDriver.manage().timeouts().implicitlyWait(10, java.util.concurrent.TimeUnit.SECONDS)
             js = (JavascriptExecutor) RecDriver
             browserRdyClosure()
 
