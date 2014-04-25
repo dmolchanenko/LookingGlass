@@ -72,6 +72,10 @@ A: Yes you can.
  3. Click on "imports" icon.
  4. Add any imports you like either from your jar or from selenium.  Now your your jar code is available to be used in Code tab.
 
+Q: Opening Internet Explorer through Looking Glass gives an error!
+
+A: Selenium can be a bit problematic with IE sometimes but I noticed that restarting your computer typically makes this error go away. Also, make sure your IE is not higher than version 10, selenium currently doesn’t support 11. 
+
 **Known Limitations** (I'm currently working on both):
 
 1. Currently does not work on multiple tabs/windows, just the first one that is opened.
