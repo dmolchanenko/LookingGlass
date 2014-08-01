@@ -24,7 +24,7 @@ Browsers: Chrome, Internet Explorer, Safari, Firefox
 1. Install Java 1.7.
 2. Download zip file from:  https://bitbucket.org/primatestinc/looking-glass/downloads/LookingGlass.zip (select 'Keep' when prompted by browser).
 3. Unzip contents in to your folder (eg: c:\Looking Glass).
-4. Double click on 'StartLookingGlass.vbs' to start.
+4. Double click on 'StartLookingGlass.vbs' to start. (StartLookingGlass.sh for Linux/Mac)
 5. If 'Looking Glass' doesn't start, it could be that Java path is not set on your computer, please follow these instructions to set it: https://forums.bukkit.org/threads/how-to-fix-java-is-not-recognized-as-an-internal-command-or-external-command.139263/
  
 **Upgrade From Previous To Latest Version**:
